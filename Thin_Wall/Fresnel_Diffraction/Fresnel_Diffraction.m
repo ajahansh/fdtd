@@ -130,7 +130,10 @@ Constant = exp((a+b)*k*1j + 1j*3*pi/4)/sqrt(L)./sqrt(2*pi*k)/2/n;
 Field = Constant.*(cot((pi - alpha_m)/2/n)*fcs(k*L*A_m_alpha_m) + ...
                    cot((pi - alpha_m)/2/n)*fcs(k*L*A_m_alpha_p) + ...
                    cot((pi + alpha_p)/2/n)*fcs(k*L*A_p_alpha_p) + ...
-                   cot((pi + alpha_p)/2/n)*fcs(k*L*A_p_alpha_m)) + Field
+                   cot((pi + alpha_p)/2/n)*fcs(k*L*A_p_alpha_m)) + Field;
                
                
-plot(2*pi*nu/c, abs(Field));              
+plot(2*pi*nu/c, abs(Field))
+xlabel('Kd')
+title('Fresnel diffraction analytically')
+saveas(gcf,'fresnel_thin_wall','pdf')
