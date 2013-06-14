@@ -38,8 +38,8 @@ fprintf(sprintf('Free Space Calculation...\n'))
 for it=1:length(fp)               % Divide transfer function by free wall
     free=thin_wall(0,k(it),m,fp(it),1);
     r1(1+(it-1)*100:it*100)=r1(1+(it-1)*100:it*100)./free.r1;
-    r2(1+(it-1)*100:it*100)=r2(1+(it-1)*100:it*100)./free.r2;
-    r3(1+(it-1)*100:it*100)=r3(1+(it-1)*100:it*100)./free.r3;
+    r2(1+(it-1)*100:it*100)=r2(1+(it-1)*100:it*100)./free.r1;
+    r3(1+(it-1)*100:it*100)=r3(1+(it-1)*100:it*100)./free.r1;
 end
 save('trans.mat','r1','r2','r3','f')
 %% PLOT TRANSFER FUNCTION
