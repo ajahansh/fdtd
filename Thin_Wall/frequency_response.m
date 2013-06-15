@@ -17,7 +17,7 @@
 % $$$ diary off
 %% CALCULATE TRANSFER FUNCTION
 clear all;close all;clc
-fp=[68,3*68];
+fp=[68,3*68,3^2*68];
 k_max=5637;                       % Previous section at 500 Hz with wall.
 m=3;                              % k_max is set for this m.
 f_kmax=500;                       % Previous section

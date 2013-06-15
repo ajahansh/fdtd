@@ -1,4 +1,4 @@
-function return_args=thick_wall(ifshow,k_max,m,fp,if_free)
+function return_args=wedge_fine(ifshow,k_max,m,fp,N)
 if nargin<1
     close all
     clc
@@ -6,7 +6,7 @@ if nargin<1
     fp=68*9;
     k_max=5637*fp/500;
     m=1.4;
-    if_free=0;
+    N=3; % Discretization in fine grid
 end
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
 c=340;          % Speed of sound
@@ -19,14 +19,20 @@ nd=ceil(d/dx);  % number of grids in d.
 if mod(nd,2)==1 % nd should be even, because nd/2 is needed.
     nd=nd+1;
 end
+if mod(N,2)==0 % N should be odd
+    N=N+1;
+end
+N2=(N-1)/2;          % N/2
 dx=d/nd;             % Recalculate dx
 dy=dx;               % Same grid in x,y
 np=lp/dx;            % Does not need to be integer
 nx=7*nd+1;           % Number of cells in x direction
 ny=6*nd+1;           % Number of cells in y direction
 npml=40;             % Number of cells in PML
-xdim=nx-2+2*npml;    % Total number of columns
+xdim=nx-2+2*npml;    % Total number of columns for course grid
+xdim_f=(nd+1)*N;     % Total number of columns for fine grid
 ydim=ny-2+2*npml;    % Total number of rows
+ydim_f=(nd/2+1)*N;   % Total number of rows for fine grid
 cn=1/sqrt(2);
 dt=cn*dx/c/sqrt(2);  % Time step
 cdtdx=c*dt/dx;       % c * dt / dx. Needed for ricker wavelet
@@ -61,6 +67,9 @@ end
 ox=zeros(ydim,xdim);
 oy=ox;
 p=ox;
+ox_f=zeros(ydim_f,xdim_f+1);
+oy_f=zeros(ydim_f+1,xdim_f);
+p_f=zeros(ydim_f,xdim_f);
 px=spalloc(ydim,xdim,2*npml*ydim+(nx-2)*2*npml);
 py=px; % px and py are sparse. They fit around p.
 % Frame is just made to better see the boundaries and source
@@ -68,7 +77,41 @@ py=px; % px and py are sparse. They fit around p.
 frame=sparse(ydim,xdim,3*ydim+3*xdim);
 frame(npml,:)=1;frame(ny+npml-1,:)=1;
 frame(:,npml)=1;frame(:,nx+npml-1)=1;
-frame(npml+ny-2*nd-1:npml+ny-1,npml+2*nd:npml+3*nd)=1;
+frame(npml+ny-1-2*nd:npml+ny-1,npml+2*nd:npml+3*nd)=1;
+slope=tril(ones(nd/2+1)); % Will be used to make the frame
+wedge=[fliplr(slope(:,2:end)),slope];
+frame(npml+ny-1-2.5*nd:npml+ny-1-2*nd,npml+2*nd:npml+3*nd)=wedge;
+if ifshow % Prepare plots
+    figure(2);
+    coarse_h=subplot(1,3,[1,2]);
+    set(coarse_h,'NextPlot','ReplaceChildren')
+    set(coarse_h,'LooseInset',get(coarse_h,'TightInset'))
+    axis(coarse_h,'equal')
+    fine_h=subplot(1,3,3);
+    set(fine_h,'NextPlot','ReplaceChildren')
+    set(fine_h,'LooseInset',get(fine_h,'TightInset'))
+    axis(fine_h,'equal')
+    getframe();
+end
+% Calculate Row and Cols of fine grid in coarse grid
+Row_f=[npml+ny-1-2.5*nd,npml+ny-1-2*nd];    % fine row start and end
+Col_f=[npml+2*nd,npml+3*nd];                % fine col start and end
+slope=triu(ones(nd/2+1),1); % Will be used to make the frame
+wedge=[fliplr(slope(:,2:end)),slope];
+slope_f=diag(ones(1,N*nd/2+1));
+frame_f=[fliplr(slope_f(:,2:end)),slope_f];
+frame_f=[zeros(N*nd/2+1,N2),frame_f,zeros(N*nd/2+1,N2)];
+frame_f=[zeros(N2,N*(nd+1));frame_f;zeros(N2,N*(nd+1))];
+slope_f=triu(ones(N*nd/2+1),1); % Will be used on fine grid 
+wedge_f=[fliplr(slope_f(:,2:end)),slope_f];
+wedge_f=[ones(N*nd/2+1,N2),wedge_f,ones(N*nd/2+1,N2)];
+wedge_f=[ones(N2,N*(nd+1));wedge_f;ones(N2,N*(nd+1))];
+wedge_f(end-N2+1:end,N2+1:end-N2)=0;
+mask=zeros(N);
+mask(N2+1,N2+1)=1;
+mask=repmat(mask,nd/2+1,nd+1);
+mask=sub2ind(size(mask),find(mask)); % Will be used later to address
+% coarse values in fine grid
 %% INITIALIZING THE DAMPING MATRICES
 % Starting out with the ox and oy...
 KO_x=spalloc(ydim,xdim,(2*npml-1)*ydim);
@@ -101,59 +144,108 @@ KP_x_o=c^2*dt/dx;
 KP_x_p=1-KP_x*dt;
 KP_y_o=c^2*dt/dy;
 KP_y_p=1-KP_y*dt;
-%% TIME STEPPING ITERATION
-if ifshow;
-    figure(2);
-end
+%% STARTING OUT WITH TIME LOOPS
 display='it=0/nt t=0.000000';
 fprintf(display);
-for it=1:nt
-    t=(it-1)*dt;
+for it_c=1:nt
+    %% SOURCE AND RECORDERS
+    t=(it_c-1)*dt;
     fprintf(repmat('\b',1,length(display)))
-    display=sprintf('it=%d/%d t=%.6fs',it,nt,t);
+    display=sprintf('it=%d/%d t=%.6fs\n',it_c,nt,t);
     fprintf(sprintf(display))
-    p(row_s,col_s)=p(row_s,col_s)+source(it);
-    r1(it)=p(row_s,col_r1);
-    r2(it)=p(row_s,col_r2);
-    r3(it)=p(row_s,col_r3);
-    
-    % Update Equations
+    p(row_s,col_s)=p(row_s,col_s)+source(it_c); % Apply source
+    r1(it_c)=p(row_s,col_r1); % Record the values
+    r2(it_c)=p(row_s,col_r2); % Record the values
+    r3(it_c)=p(row_s,col_r3); % Record the values
+    %% INTERPOLATE P_FINE ON EDGE BILINEAR
+    coarse_data=p(Row_f(1)-1:Row_f(2)+1,Col_f(1)-1:Col_f(1));
+    [X,Y]=meshgrid([0,1],0:nd/2+2);
+    XI=0.5-1/(2*N);
+    YI=0.5+1/(2*N):1/N:nd/2+1.5-1/(2*N);
+    left_f=interp2(X,Y,coarse_data,XI,YI);
+    coarse_data=p(Row_f(1)-1:Row_f(2)+1,Col_f(2):Col_f(2)+1);
+    [X,Y]=meshgrid([0,1],0:nd/2+2);
+    XI=0.5+1/(2*N);
+    YI=0.5+1/(2*N):1/N:nd/2+1.5-1/(2*N);
+    right_f=interp2(X,Y,coarse_data,XI,YI);
+    coarse_data=p(Row_f(1)-1:Row_f(1),Col_f(1)-1:Col_f(2)+1);
+    [X,Y]=meshgrid(0:nd+2,[0,1]);
+    XI=0.5+1/(2*N):1/N:nd+1.5-1/(2*N);
+    YI=0.5-1/(2*N);
+    top_f=interp2(X,Y,coarse_data,XI,YI);
+    coarse_data=p(Row_f(2):Row_f(2)+1,Col_f(1)-1:Col_f(2)+1);
+    [X,Y]=meshgrid(0:nd+2,[0,1]);
+    XI=0.5+1/(2*N):1/N:nd+1.5-1/(2*N);
+    YI=0.5+1/(2*N);
+    bottom_f=interp2(X,Y,coarse_data,XI,YI);
+    %% UPDATE FINE GRID OX_F OY_F P_F AND CALCULATE CORRECTION FACTOR
+    df_l=-c^2*dt/dx*ox(Row_f(1):Row_f(2),Col_f(1)-1);
+    df_r= c^2*dt/dx*ox(Row_f(1):Row_f(2),Col_f(2));
+    df_t= c^2*dt/dy*oy(Row_f(1),Col_f(1):Col_f(2));
+    df_b=-c^2*dt/dy*oy(Row_f(2)+1,Col_f(1):Col_f(2));
+    for it_f=1:N
+        ox_f=fin_diff([left_f,p_f,right_f],ox_f,'x',dt/dx);
+        oy_f=fin_diff([top_f;p_f;bottom_f],oy_f,'y',dt/dy);
+        p_f=fin_diff(ox_f,p_f,'x',c^2*dt/dx);
+        p_f=fin_diff(oy_f,p_f,'y',c^2*dt/dy);
+        p_f=wedge_f.*p_f;  % APPLY WEDGE BOUNDRY ON FINE GRID
+        for it=0:nd/2
+            df_l(it+1)=df_l(it+1)+c^2*dt/dx/(N^2)*sum(ox_f(1+it*N:(it+1)*N,1));
+            df_r(it+1)=df_r(it+1)-c^2*dt/dx/(N^2)*sum(ox_f(1+it*N:(it+1)*N,end));
+            df_t(it+1)=df_t(it+1)-c^2*dt/dy/(N^2)*sum(oy_f(1,1+it*N:(it+1)*N));
+            df_b(it+1)=df_b(it+1)+c^2*dt/dy/(N^2)*sum(oy_f(end,1+it*N:(it+1)*N));
+        end
+    end   
+    %% UPDATE COARSE GRID OX OY P
     ox=fin_diff([p+px+py,zeros(ydim,1)],ox,'x',KO_x_p,KO_x_o);
     oy=fin_diff([zeros(1,xdim);p+px+py],oy,'y',KO_y_p,KO_y_o);
     p=fin_diff([ox(:,1),ox],px+p,'x',KP_x_o,KP_x_p);
-
     px(:,[1:npml,nx+npml-1:end])=p(:,[1:npml,nx+npml-1:end]);
     px([1:npml,ny+npml-1:end],:)=p([1:npml,ny+npml-1:end],:);
     p(:,[1:npml,nx+npml-1:end])=0;
     p([1:npml,ny+npml-1:end],:)=0;
-    
     p=fin_diff([oy;zeros(1,xdim)],py+p,'y',KP_y_o,KP_y_p);
-    
     py(:,[1:npml,nx+npml-1:end])=p(:,[1:npml,nx+npml-1:end]); %#ok<*SPRIX>
     py([1:npml,ny+npml-1:end],:)=p([1:npml,ny+npml-1:end],:); %#ok<SPRIX>
     p(:,[1:npml,nx+npml-1:end])=0;
     p([1:npml,ny+npml-1:end],:)=0;
-    
-    % Boundries
-    if ~if_free
-        p (npml+ny-1,:)=0;
-        px(npml+ny-1,:)=0;
-        py(npml+ny-1,:)=0;
-        p (npml+ny-2*nd-1:npml+ny-1,npml+2*nd:npml+3*nd)=0; % Thick
-                                                            % Wall
+    %%  REPLACE COARSE VALUES WITH OVERLAPPING FINE VALUES
+    %p(Row_f(1):Row_f(2),Col_f(1):Col_f(2))=reshape(p_f(mask),nd/2+1,nd+1);
+    for it_fr=0:nd/2
+        for it_fc=0:nd
+            p(Row_f(1)+it_fr,Col_f(1)+it_fc)=sum(sum(p_f(1+it_fr*N:...
+                (it_fr+1)*N,1+it_fc*N:(it_fc+1)*N)))/(N^2);
+        end
     end
-  
-    if ifshow && mod(it,4)==0;
-        set(gca,'nextplot','replacechildren')%For better movie quality     
-        %set(gca,'LooseInset',get(gca,'TightInset'))%Discard white space
-        pcolor(flipud(p+px+py+frame));
-        colormap ('gray')
-        shading interp
-        caxis([-.01 .01])%Assuming A=1
-        colorbar
-        xlim([1 xdim])
-        ylim([1 ydim])
-        title(display)
+    %% APPLY CORRECTION FACTOR FROM FINE GRID ON COARSE GRID
+    p(Row_f(1):Row_f(2),Col_f(1)-1)=p(Row_f(1):Row_f(2),Col_f(1)-1)-df_l;
+    p(Row_f(1):Row_f(2),Col_f(2)+1)=p(Row_f(1):Row_f(2),Col_f(2)+1)-df_r;
+    p(Row_f(1)-1,Col_f(1):Col_f(2))=p(Row_f(1)-1,Col_f(1):Col_f(2))-df_t;
+    p(Row_f(2)+1,Col_f(1):Col_f(2))=p(Row_f(2)+1,Col_f(1):Col_f(2))-df_b;
+    % Apply Boundry Condition on Coarse Grid
+    p(npml+ny-1,:)=0;
+    px(npml+ny-1,:)=0;
+    py(npml+ny-1,:)=0;
+    p(npml+ny-2*nd-1:npml+ny-1,npml+2*nd:npml+3*nd)=0; % Thick Wall
+    p(npml+ny-1-2.5*nd:npml+ny-1-2*nd,npml+2*nd:npml+3*nd)=wedge.*...
+        p(npml+ny-1-2.5*nd:npml+ny-1-2*nd,npml+2*nd:npml+3*nd); % Wedge
+    %% VISUALIZATION
+    if ifshow && mod(it_c,10)==0
+        pcolor(coarse_h,flipud(p+frame+px+py))
+        shading(coarse_h,'interp')
+        colormap(coarse_h,'gray')
+        caxis(coarse_h,[-.01 .01]) %Assuming A=1
+        xlim(coarse_h,[1 xdim])
+        ylim(coarse_h,[1 ydim])
+        title(coarse_h,sprintf('it=%d/%d, fp=%d, t=%.5f',it_c,nt,fp,t))
+        
+        pcolor(fine_h,flipud(p_f+frame_f))
+        shading(fine_h,'interp')
+        colormap(fine_h,'gray')
+        caxis(fine_h,[-0.01 0.01])
+        xlim(fine_h,[1 xdim_f])
+        ylim(fine_h,[1 ydim_f])
+        title(fine_h,sprintf('Fine Descritization, N=%d',N))
         getframe();
     end
 end
@@ -211,18 +303,22 @@ return_args.r3=fit_r3(f)./fit_source(f);
 end
 
 function value=ricker_wavelet(cdtdx,np,it,md)
-    value=pi^2*(cdtdx*it/np-md)^2;
-    value=(1-2*value)*exp(-value);
+value=pi^2*(cdtdx*it/np-md)^2;
+value=(1-2*value)*exp(-value);
 end
 
 function b=fin_diff(a,b,direction,scale_a,scale_b)
-    switch direction
-      case 'x'
+if nargin==4
+    scale_b=1;
+end
+switch direction
+    case 'x'
         cols=1:size(b,2);
         b=full(scale_b.*b-scale_a.*(a(:,cols+1)-a(:,cols)));
-      case 'y'
+    case 'y'
+        
         rows=1:size(b,1);
         b=full(scale_b.*b-scale_a.*(a(rows,:)-a(rows+1,:)));
-    end
+end
 end
 

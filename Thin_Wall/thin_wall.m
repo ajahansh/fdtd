@@ -34,10 +34,9 @@ nt=round(2*md/(fp*dt)+...
          sqrt(xdim^2+ydim^2)/cdtdx);%Number of time steps
 %%% FFT INITIALIZATIONS
 fmax=1/(2*dt);       % Maximum frequency in fft
-df=fmax/(nt/2);      % Frequency resolution
-disp(['d=',num2str(d),' m'])
+NFFT=2^nextpow2(nt);
+disp(['fp=',num2str(fp),' d=',num2str(d),' m'])
 disp(['nx=',num2str(nx),' dx=',num2str(dx),' nt=',num2str(nt)])
-disp(['fp=',num2str(fp),'Hz df=',num2str(df),' fmax=',num2str(fmax)])
 %% OTHER INITIALIZATIONS
 col_s=npml+nd;       % X location of source
 row_s=npml+ny-1-nd/2;% Y location of source
@@ -48,12 +47,13 @@ source=arrayfun(@(it)ricker_wavelet(cdtdx,np,it,md),1:nt);
 r1=zeros(nt,1);      % Recorder1 Pre alocation
 r2=r1;               % Recorder2 Pre alocation
 r3=r2;               % Recorder3 Pre alocation
-fft_source=abs(fft(source))';
-f=(0:df:2.5*fp)';
-fft_source=fft_source(1:length(f));
+fft_source=fft(source,NFFT)/nt; 
+f=fmax*linspace(0,1,NFFT/2+1)';
+f=f(f<2.5*fp);
+fft_source=abs(fft_source(1:length(f)))';
 if ifshow
     figure(1)% to show the fft of source
-    plot(f,fft_source,'bo')
+    plot(f,2*fft_source,'bo')
     xlabel('Frequency(Hz)')
     title('fft of source and recorders')
 end
@@ -61,7 +61,7 @@ end
 ox=zeros(ydim,xdim);
 oy=ox;
 p=ox;
-px=spalloc(ydim,xdim,2*npml*ydim+(nx-2)*npml);
+px=spalloc(ydim,xdim,2*npml*ydim+(nx-2)*2*npml);
 py=px; % px and py are sparse. They fit around p.
 % Frame is just made to better see the boundaries and source
 % Frame is prealocated for more elements that actually needed.
@@ -144,7 +144,7 @@ for it=1:nt
   
     if ifshow && mod(it,400)==0;
         pcolor(flipud(p+px+py+frame));
-        colormap('gray');
+        colormap('gray')
         shading interp
         caxis([-.001 .001])
         colorbar
@@ -165,19 +165,19 @@ energy=sum(sum(ox.^2+oy.^2));
 return_args.E=energy;
 
 % Calculate fft
-fft_r1=abs(fft(r1));
-fft_r2=abs(fft(r2));
-fft_r3=abs(fft(r3));
-fft_r1=fft_r1(1:length(f));
-fft_r2=fft_r2(1:length(f));
-fft_r3=fft_r3(1:length(f));
+fft_r1=fft(r1,NFFT)/nt;
+fft_r2=fft(r2,NFFT)/nt;
+fft_r3=fft(r3,NFFT)/nt;
+fft_r1=abs(fft_r1(1:length(f)));
+fft_r2=abs(fft_r2(1:length(f)));
+fft_r3=abs(fft_r3(1:length(f)));
 % Plot FFT of recorders if requested
 if ifshow
     figure(1);%Back to fft plot
     hold on
-    h1=plot(f,fft_r1,'ro');
-    h2=plot(f,fft_r2,'go');
-    h3=plot(f,fft_r3,'co');
+    h1=plot(f,2*fft_r1,'ro');
+    h2=plot(f,2*fft_r2,'go');
+    h3=plot(f,2*fft_r3,'co');
     legend([h1,h2,h3],'Recorder 1','Recorder 2','Recorder 3','Location',...
            'NorthEast')
 end
@@ -196,9 +196,9 @@ fit_source=fit(f,fft_source,ft,opts);
 if ifshow
     figure(1);%Back to fft plot
     hold on
-    plot(f,fit_r1(f),'r');
-    plot(f,fit_r2(f),'g');
-    plot(f,fit_r3(f),'c');
+    plot(f,2*fit_r1(f),'r');
+    plot(f,2*fit_r2(f),'g');
+    plot(f,2*fit_r3(f),'c');
 end
 f=linspace(0.5*fp,1.5*fp,101);
 f=f(1:end-1);

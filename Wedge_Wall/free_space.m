@@ -1,4 +1,4 @@
-function return_args=thick_wall(ifshow,k_max,m,fp,if_free)
+function return_args=free_space(ifshow,k_max,m,fp,if_free)
 if nargin<1
     close all
     clc
