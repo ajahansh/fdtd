@@ -142,7 +142,7 @@ for it=1:nt
         py(npml+ny-1,:)=0;
     end
   
-    if ifshow && mod(it,4)==0;
+    if ifshow && mod(it,400)==0;
         pcolor(flipud(p+px+py+frame));
         colormap('gray');
         shading interp
@@ -175,15 +175,16 @@ fft_r3=fft_r3(1:length(f));
 if ifshow
     figure(1);%Back to fft plot
     hold on
-    h1=plot(f,fft_r1,'r');
-    h2=plot(f,fft_r2,'g');
-    h3=plot(f,fft_r3,'c');
+    h1=plot(f,fft_r1,'ro');
+    h2=plot(f,fft_r2,'go');
+    h3=plot(f,fft_r3,'co');
     legend([h1,h2,h3],'Recorder 1','Recorder 2','Recorder 3','Location',...
            'NorthEast')
 end
 % Fit curve using spline
-ft=fittype('smoothingspline');
+ft=fittype('splineinterp');
 opts=fitoptions(ft);
+opts.Normalize = 'on';
 [f,fft_r1]=prepareCurveData(f,fft_r1);
 [f,fft_r2]=prepareCurveData(f,fft_r2);
 [f,fft_r3]=prepareCurveData(f,fft_r3);
@@ -192,6 +193,13 @@ fit_r1=fit(f,fft_r1,ft,opts);
 fit_r2=fit(f,fft_r2,ft,opts);
 fit_r3=fit(f,fft_r3,ft,opts);
 fit_source=fit(f,fft_source,ft,opts);
+if ifshow
+    figure(1);%Back to fft plot
+    hold on
+    plot(f,fit_r1(f),'r');
+    plot(f,fit_r2(f),'g');
+    plot(f,fit_r3(f),'c');
+end
 f=linspace(0.5*fp,1.5*fp,101);
 f=f(1:end-1);
 return_args.f=f;

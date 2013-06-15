@@ -26,7 +26,6 @@ A_p_alpha_m = 2*cos((2*n*pi*N_p - alpha_m)/2)^2;
 A_m_alpha_p = 2*cos((2*n*pi*N_m - alpha_p)/2)^2; 
 A_m_alpha_m = 2*cos((2*n*pi*N_m - alpha_m)/2)^2; 
 
-
 Constant = exp((a+b)*k*1j + 1j*pi/4)/sqrt(L)./sqrt(2*pi*k)/2/n;
 
 Field = Constant.*(cot((pi - alpha_m)/2/n)*fcs(k*L*A_m_alpha_m) + ...
