@@ -2,12 +2,13 @@ function return_args=free_space(ifshow,k_max,m,fp,if_free)
 if nargin<1
     close all
     clc
-    ifshow=1;
-    fp=68*9;
+    ifshow=0;
+    fp=9*68;
     k_max=5637*fp/500;
     m=1.4;
     if_free=0;
 end
+tic
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
 c=340;          % Speed of sound
 lp=c/fp;        % Associated wavelength with peak frequency
@@ -208,6 +209,7 @@ return_args.f=f;
 return_args.r1=fit_r1(f)./fit_source(f);
 return_args.r2=fit_r2(f)./fit_source(f);
 return_args.r3=fit_r3(f)./fit_source(f);
+toc
 end
 
 function value=ricker_wavelet(cdtdx,np,it,md)
@@ -225,4 +227,3 @@ function b=fin_diff(a,b,direction,scale_a,scale_b)
         b=full(scale_b.*b-scale_a.*(a(rows,:)-a(rows+1,:)));
     end
 end
-

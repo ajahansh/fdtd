@@ -2,12 +2,13 @@ function return_args=wedge_fine(ifshow,k_max,m,fp,N)
 if nargin<1
     close all
     clc
-    ifshow=1;
-    fp=68*9;
+    ifshow=0;
+    fp=1000;
     k_max=5637*fp/500;
     m=1.4;
-    N=3; % Discretization in fine grid
+    N=7; % Discretization in fine grid
 end
+tic
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
 c=340;          % Speed of sound
 lp=c/fp;        % Associated wavelength with peak frequency
@@ -151,7 +152,7 @@ for it_c=1:nt
     %% SOURCE AND RECORDERS
     t=(it_c-1)*dt;
     fprintf(repmat('\b',1,length(display)))
-    display=sprintf('it=%d/%d t=%.6fs\n',it_c,nt,t);
+    display=sprintf('it=%d/%d t=%.6fs',it_c,nt,t);
     fprintf(sprintf(display))
     p(row_s,col_s)=p(row_s,col_s)+source(it_c); % Apply source
     r1(it_c)=p(row_s,col_r1); % Record the values
@@ -300,6 +301,7 @@ return_args.f=f;
 return_args.r1=fit_r1(f)./fit_source(f);
 return_args.r2=fit_r2(f)./fit_source(f);
 return_args.r3=fit_r3(f)./fit_source(f);
+toc
 end
 
 function value=ricker_wavelet(cdtdx,np,it,md)

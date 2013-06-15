@@ -35,8 +35,10 @@ plot(kd,r1,'r')
 plot(kd,r2,'g')
 plot(kd,r3,'b')
 xlabel('Kd')
-title('Frequency response of wedge divided by free space')
+%title('Frequency response of wedge divided by free space')
 legend('Recorder 1','Recorder 2','Recorder 3','Location', ...
        'NorthEast')
 getframe();
-saveas(gcf,'wedge_wall','pdf')
+%saveas(gcf,'wedge_wall','pdf')
+matlab2tikz('transfer_wedge_N7.tikz', 'height', '\figureheight', 'width', ...
+            '\figurewidth','showInfo',false);
