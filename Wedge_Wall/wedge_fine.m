@@ -8,7 +8,6 @@ if nargin<1
     m=1.4;
     N=3; % Discretization in fine grid
 end
-tic
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
 c=340;          % Speed of sound
 lp=c/fp;        % Associated wavelength with peak frequency
@@ -302,7 +301,6 @@ return_args.f=f;
 return_args.r1=fit_r1(f)./fit_source(f);
 return_args.r2=fit_r2(f)./fit_source(f);
 return_args.r3=fit_r3(f)./fit_source(f);
-toc
 end
 
 function value=ricker_wavelet(cdtdx,np,it,md)
