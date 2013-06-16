@@ -2,11 +2,11 @@ function return_args=wedge_fine(ifshow,k_max,m,fp,N)
 if nargin<1
     close all
     clc
-    ifshow=0;
-    fp=1000;
+    ifshow=1;
+    fp=612;
     k_max=5637*fp/500;
     m=1.4;
-    N=7; % Discretization in fine grid
+    N=3; % Discretization in fine grid
 end
 tic
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
@@ -235,7 +235,7 @@ for it_c=1:nt
         pcolor(coarse_h,flipud(p+frame+px+py))
         shading(coarse_h,'interp')
         colormap(coarse_h,'gray')
-        caxis(coarse_h,[-.01 .01]) %Assuming A=1
+        caxis(coarse_h,[-.001 .001]) %Assuming A=1
         xlim(coarse_h,[1 xdim])
         ylim(coarse_h,[1 ydim])
         title(coarse_h,sprintf('it=%d/%d, fp=%d, t=%.5f',it_c,nt,fp,t))
@@ -248,6 +248,7 @@ for it_c=1:nt
         ylim(fine_h,[1 ydim_f])
         title(fine_h,sprintf('Fine Descritization, N=%d',N))
         getframe();
+        %export_fig(sprintf('wedge_N%d',it_c),'-jpg','-m2')
     end
 end
 fprintf('\n')
