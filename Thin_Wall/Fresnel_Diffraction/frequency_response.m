@@ -2,7 +2,7 @@ clear all
 clc
 close all
 global nu;
-nu=0:2750;
+nu=0:918;
 c = 340;
 k = 2*pi*nu/c;
 %% Source Reflection Recorder Normal
@@ -39,5 +39,5 @@ data4 = Fresnel_Diffraction(a, b, theta_r, theta_s);
 plot(k,abs(data1-data2+data3-data4))
 xlabel('Kd')
 ylabel('Absolute Fresnel')
-matlab2tikz('fresnel_diffraction.tikz', 'height', '\figureheight', 'width', ...
+matlab2tikz('fresnel_diffraction_r1.tikz', 'height', '\figureheight', 'width', ...
             '\figurewidth','showInfo',false);
