@@ -17,7 +17,7 @@
 % $$$ diary off
 %% CALCULATE TRANSFER FUNCTION
 clear all;close all;clc
-fp=[68,3*68,3^2*68];
+fp=[68,3*68,3^2*68,3^3*68,3^4*68];
 k_max=5637;                       % Previous section at 500 Hz with wall.
 m=3;                              % k_max is set for this m.
 f_kmax=500;                       % Previous section
@@ -56,5 +56,5 @@ legend('Recorder 1','Recorder 2','Recorder 3','Location', ...
        'NorthEast')
 getframe();
 saveas(gcf,'thin_wall','pdf')
-matlab2tikz('transfer_thin_wall.tikz', 'height', '\figureheight', 'width', ...
-            '\figurewidth','showInfo',false);
+%matlab2tikz('transfer_thin_wall.tikz', 'height', '\figureheight', 'width', ...
+%            '\figurewidth','showInfo',false);
