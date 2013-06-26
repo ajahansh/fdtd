@@ -44,7 +44,7 @@ xlabel('Kd')
 legend([h1,h2,h3,h4],'N=3','N=5','N=7','N=9')
 matlab2tikz('r1.tikz', 'height', '\figureheight', 'width', ...
             '\figurewidth','showInfo',false);
-export_fig('r1','-pdf','-transparent')
+export_fig('wedge_r1','-pdf','-transparent')
 hold off
 h1=semilogy(kd,r2(:,1),'r');
 hold on
@@ -54,8 +54,8 @@ h4=semilogy(kd,r2(:,4),'k');
 xlabel('Kd')
 legend([h1,h2,h3,h4],'N=3','N=5','N=7','N=9')
 matlab2tikz('r2.tikz', 'height', '\figureheight', 'width', ...
-            '\figurewidth','showInfo',false);
-export_fig('r2','-pdf','-transparent')
+    '\figurewidth','showInfo',false);
+export_fig('wedge_r2','-pdf','-transparent')
 hold off
 h1=semilogy(kd,r3(:,1),'r');
 hold on
@@ -66,4 +66,44 @@ xlabel('Kd')
 legend([h1,h2,h3,h4],'N=3','N=5','N=7','N=9')
 matlab2tikz('r3.tikz', 'height', '\figureheight', 'width', ...
             '\figurewidth','showInfo',false);
-export_fig('r3','-pdf','-transparent')
+export_fig('wedge_r3','-pdf','-transparent')
+hold off
+h1=semilogy(kd,r1(:,1),'r');
+hold on
+h2=semilogy(kd,r2(:,1),'g');
+h3=semilogy(kd,r3(:,1),'b');
+xlabel('Kd')
+legend([h1,h2,h3],'Recorder 1','Recorder 2','Recorder 3')
+matlab2tikz('transfer_wedge_N3.tikz', 'height','\figureheight','width', ...
+            '\figurewidth','showInfo',false);
+export_fig('transfer_N3','-pdf','-transparent')
+hold off
+h1=semilogy(kd,r1(:,2),'r');
+hold on
+h2=semilogy(kd,r2(:,2),'g');
+h3=semilogy(kd,r3(:,2),'b');
+xlabel('Kd')
+legend([h1,h2,h3],'Recorder 1','Recorder 2','Recorder 3')
+matlab2tikz('transfer_wedge_N5.tikz', 'height','\figureheight','width', ...
+            '\figurewidth','showInfo',false);
+export_fig('transfer_N5','-pdf','-transparent')
+hold off
+h1=semilogy(kd,r1(:,3),'r');
+hold on
+h2=semilogy(kd,r2(:,3),'g');
+h3=semilogy(kd,r3(:,3),'b');
+xlabel('Kd')
+legend([h1,h2,h3],'Recorder 1','Recorder 2','Recorder 3')
+matlab2tikz('transfer_wedge_N7.tikz', 'height','\figureheight','width', ...
+            '\figurewidth','showInfo',false);
+export_fig('transfer_N7','-pdf','-transparent')
+hold off
+h1=semilogy(kd,r1(:,4),'r');
+hold on
+h2=semilogy(kd,r2(:,4),'g');
+h3=semilogy(kd,r3(:,4),'b');
+xlabel('Kd')
+legend([h1,h2,h3],'Recorder 1','Recorder 2','Recorder 3')
+matlab2tikz('transfer_wedge_N9.tikz', 'height','\figureheight','width', ...
+            '\figurewidth','showInfo',false);
+export_fig('transfer_N9','-pdf','-transparent')

@@ -2,7 +2,7 @@ clear all
 clc
 close all
 global nu;
-nu=0:918;
+nu=0:2700;
 c = 340;
 k = 2*pi*nu/c;
 %% Source Reflection Recorder Normal

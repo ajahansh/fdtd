@@ -17,7 +17,6 @@ ymode=log,
 ymin=0.0001,
 ymax=0.1,
 yminorticks=true,
-title={Frequency response of thin wall divided by free space},
 legend style={draw=black,fill=white,legend cell align=left}
 ]
 \addplot [

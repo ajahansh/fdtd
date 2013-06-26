@@ -17,8 +17,8 @@
 % diary off
 %% CALCULATE TRANSFER FUNCTION
 clear all;close all;clc
-fp=[68,3*68,3^2*68];
-k_max=2085;                       % Previous section at 500 Hz with wall.
+fp=[68,3*68,3^2*68,3^3*68];
+k_max=2085;                       % Previous section at 200 Hz with wall.
 m=3;                              % k_max is set for this m.
 f_kmax=200;                       % Previous section
 k=k_max*fp/f_kmax;                % Linear relationship with frequency
@@ -50,7 +50,6 @@ hold on
 semilogy(kd,r2,'g')
 semilogy(kd,r3,'b')
 xlabel('Kd')
-title('Frequency response of thin wall divided by free space')
 legend('Recorder 1','Recorder 2','Recorder 3','Location', ...
        'NorthEast')
 getframe();

@@ -33,7 +33,6 @@ hold on
 semilogy(kd,r2,'g')
 semilogy(kd,r3,'b')
 xlabel('Kd')
-title('Frequency response of thin wall divided by free space')
 legend('Recorder 1','Recorder 2','Recorder 3','Location', ...
        'NorthEast')
 getframe();
