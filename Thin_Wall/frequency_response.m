@@ -1,26 +1,26 @@
-%% FIND BEST KMAX FOR 500 HZ
-% $$$ clear all;close all;clc
-% $$$ delete('frequency-response.txt')
-% $$$ diary('frequency-response.txt')
-% $$$ disp('Finding best K_max in 500 Hz to have least reflection')
-% $$$ tic
-% $$$ f_kmax=500;                      % Kmax is found for this frequency
-% $$$ m=3;
-% $$$ options=optimset('MaxFunEvals',30,'GradObj','on','Display','iter');
-% $$$ % In this part m=3. Initial value for k_max is 20e3.
-% $$$ [k_max,return_args]=fminsearch(@(k)SIT_SIP_PML(0,k,m,f_kmax,1),...
-% $$$                                20e3,options);
-% $$$ disp(['Optimal k_max=',num2str(k_max),' at ', num2str(f_kmax), ' Hz'])
-% $$$ time=toc;
-% $$$ disp(['Optimization for k_max took: ',num2str(time), ' s'])
-% $$$ disp(['Remaining Energy=',num2str(return_args)])
-% $$$ diary off
+%% FIND BEST KMAX FOR 200 HZ
+% clear all;close all;clc
+% delete('frequency-response.txt')
+% diary('frequency-response.txt')
+% disp('Finding best K_max in 200 Hz to have least reflection')
+% tic
+% f_kmax=200;                      % Kmax is found for this frequency
+% m=3;
+% options=optimset('MaxFunEvals',30,'GradObj','on','Display','iter');
+% % In this part m=3. Initial value for k_max is 100.
+% [k_max,return_args]=fminsearch(@(k)pml_optimize(k,m,f_kmax),100,options);
+% %k_max=2085;
+% disp(['Optimal k_max=',num2str(k_max),' at ', num2str(f_kmax), ' Hz'])
+% time=toc;
+% disp(['Optimization for k_max took: ',num2str(time), ' s'])
+% disp(['Remaining Energy=',num2str(return_args)])
+% diary off
 %% CALCULATE TRANSFER FUNCTION
 clear all;close all;clc
 fp=[68,3*68,3^2*68];
-k_max=5637;                       % Previous section at 500 Hz with wall.
+k_max=2085;                       % Previous section at 500 Hz with wall.
 m=3;                              % k_max is set for this m.
-f_kmax=500;                       % Previous section
+f_kmax=200;                       % Previous section
 k=k_max*fp/f_kmax;                % Linear relationship with frequency
 f=zeros(100*length(fp),1);
 r1=zeros(100*length(fp),1);
@@ -45,11 +45,10 @@ save('trans.mat','r1','r2','r3','f')
 %% PLOT TRANSFER FUNCTION
 load('trans.mat','r1','r2','r3','f')
 kd=2*pi*f/340; %d=1m
-figure 
+semilogy(kd,r1,'r')
 hold on
-plot(kd,r1,'r')
-plot(kd,r2,'g')
-plot(kd,r3,'b')
+semilogy(kd,r2,'g')
+semilogy(kd,r3,'b')
 xlabel('Kd')
 title('Frequency response of thin wall divided by free space')
 legend('Recorder 1','Recorder 2','Recorder 3','Location', ...

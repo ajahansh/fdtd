@@ -4,9 +4,9 @@ if nargin<1
     clc
     ifshow=1;
     fp=68*9;
-    k_max=5637*fp/500;
-    m=1.4;
-    if_free=0;
+    k_max=2085*fp/200;
+    m=3;
+    if_free=1;
 end
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
 c=340;          % Speed of sound
@@ -97,10 +97,10 @@ KO_x_o=(1-KO_x*dt/2)./(1+KO_x*dt/2);%Multiplied by previous ox
 KO_x_p=dt/dx./(1+KO_x*dt/2);%Multiplied by p.
 KO_y_o=(1-KO_y*dt/2)./(1+KO_y*dt/2);%Multiplied by previous oy
 KO_y_p=dt/dy./(1+KO_y*dt/2);%Multiplied by p.
-KP_x_o=c^2*dt/dx;
-KP_x_p=1-KP_x*dt;
-KP_y_o=c^2*dt/dy;
-KP_y_p=1-KP_y*dt;
+KP_x_o=c^2*dt/dx./(1+KP_x*dt/2);
+KP_x_p=(1-KP_x*dt/2)./(1+KP_x*dt/2);
+KP_y_o=c^2*dt/dy./(1+KP_y*dt/2);
+KP_y_p=(1-KP_y*dt/2)./(1+KP_y*dt/2);
 %% TIME STEPPING ITERATION
 if ifshow;
     figure(2);
@@ -142,11 +142,11 @@ for it=1:nt
         py(npml+ny-1,:)=0;
     end
   
-    if ifshow && mod(it,400)==0;
+    if ifshow && mod(it,20)==0;
         pcolor(flipud(p+px+py+frame));
         colormap('gray')
         shading interp
-        caxis([-.001 .001])
+        caxis([-.01 .01])
         colorbar
         xlim([1 xdim])
         ylim([1 ydim])

@@ -36,7 +36,7 @@ theta_r = 2*pi - atan(2/5);
 theta_s = atan(2/3);
 
 data4 = Fresnel_Diffraction(a, b, theta_r, theta_s);
-plot(k,abs(data1-data2+data3-data4))
+semilogy(k,abs(data1-data2+data3-data4))
 xlabel('Kd')
 ylabel('Absolute Fresnel')
 matlab2tikz('fresnel_diffraction_r1.tikz', 'height', '\figureheight', 'width', ...

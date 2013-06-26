@@ -4,8 +4,8 @@ if nargin<1
     clc
     ifshow=1;
     fp=68*9;
-    k_max=5637*fp/500;
-    m=1.4;
+    k_max=2085*fp/200;
+    m=3;
     if_free=0;
 end
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
@@ -97,10 +97,10 @@ KO_x_o=(1-KO_x*dt/2)./(1+KO_x*dt/2);%Multiplied by previous ox
 KO_x_p=dt/dx./(1+KO_x*dt/2);%Multiplied by p.
 KO_y_o=(1-KO_y*dt/2)./(1+KO_y*dt/2);%Multiplied by previous oy
 KO_y_p=dt/dy./(1+KO_y*dt/2);%Multiplied by p.
-KP_x_o=c^2*dt/dx;
-KP_x_p=1-KP_x*dt;
-KP_y_o=c^2*dt/dy;
-KP_y_p=1-KP_y*dt;
+KP_x_o=c^2*dt/dx./(1+KP_x*dt/2);
+KP_x_p=(1-KP_x*dt/2)./(1+KP_x*dt/2);
+KP_y_o=c^2*dt/dy./(1+KP_y*dt/2);
+KP_y_p=(1-KP_y*dt/2)./(1+KP_y*dt/2);
 %% TIME STEPPING ITERATION
 if ifshow;
     figure(2);
