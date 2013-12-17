@@ -1,4 +1,4 @@
-function return_args=wedge_fine(ifshow,k_max,m,fp,N)
+function return_args=wedge_fine(ifshow,k_max,m,fp,N,ifmovie)
 if nargin<1
     close all
     clc
@@ -6,7 +6,8 @@ if nargin<1
     fp=612;
     k_max=2085*fp/200;
     m=3;
-    N=3; % Discretization in fine grid
+    N=5; % Discretization in fine grid
+    ifmovie=0;  %put 1 if needed to create a movie
 end
 %% INITIALIZATION OF GRID AND SIMULATING PARAMETERS
 c=340;          % Speed of sound
@@ -93,6 +94,18 @@ if ifshow % Prepare plots
     axis(fine_h,'equal')
     getframe();
 end
+if ifmovie
+    figure(2);
+    coarse_h=subplot(1,3,[1,2]);
+    set(coarse_h,'NextPlot','ReplaceChildren')
+    set(coarse_h,'LooseInset',get(coarse_h,'TightInset'))
+    axis(coarse_h,'equal')
+    fine_h=subplot(1,3,3);
+    set(fine_h,'NextPlot','ReplaceChildren')
+    set(fine_h,'LooseInset',get(fine_h,'TightInset'))
+    axis(fine_h,'equal')
+    getframe();
+end
 % Calculate Row and Cols of fine grid in coarse grid
 Row_f=[npml+ny-1-2.5*nd,npml+ny-1-2*nd];    % fine row start and end
 Col_f=[npml+2*nd,npml+3*nd];                % fine col start and end
@@ -144,9 +157,22 @@ KP_x_o=c^2*dt/dx./(1+KP_x*dt/2);
 KP_x_p=(1-KP_x*dt/2)./(1+KP_x*dt/2);
 KP_y_o=c^2*dt/dy./(1+KP_y*dt/2);
 KP_y_p=(1-KP_y*dt/2)./(1+KP_y*dt/2);
+%% In case the intention is to make a movie
+if ifmovie==1
+    ifshow=0;
+    filename = sprintf('%dHzN%d.avi',fp,N);
+    if exist(filename, 'file') == 1
+        delete(filename);        
+    end
+    vidObj = VideoWriter(filename);
+    vidObj.Quality = 100;
+    vidObj.FrameRate = 30;
+    open(vidObj);
+end
 %% STARTING OUT WITH TIME LOOPS
 display='it=0/nt t=0.000000';
 fprintf(display);
+fig=gcf;
 for it_c=1:nt
     %% SOURCE AND RECORDERS
     t=(it_c-1)*dt;
@@ -234,7 +260,7 @@ for it_c=1:nt
         pcolor(coarse_h,flipud(p+frame+px+py))
         shading(coarse_h,'interp')
         colormap(coarse_h,'gray')
-        caxis(coarse_h,[-.001 .001]) %Assuming A=1
+        caxis(coarse_h,[-.01 .01]) %Assuming A=1
         xlim(coarse_h,[1 xdim])
         ylim(coarse_h,[1 ydim])
         title(coarse_h,sprintf('it=%d/%d, fp=%d, t=%.5f',it_c,nt,fp,t))
@@ -248,9 +274,32 @@ for it_c=1:nt
         title(fine_h,sprintf('Fine Descritization, N=%d',N))
         getframe();
         %export_fig(sprintf('wedge_N%d',it_c),'-jpg','-m2')
+    elseif ifmovie == 1
+        %% Write to movie
+        set(gca, 'nextplot','replacechildren');
+        pcolor(coarse_h,flipud(p+frame+px+py))
+        shading(coarse_h,'interp')
+        colormap(coarse_h,'gray')
+        caxis(coarse_h,[-.01 .01]) %Assuming A=1
+        xlim(coarse_h,[1 xdim])
+        ylim(coarse_h,[1 ydim])
+        title(coarse_h,sprintf('it=%d/%d, fp=%d, t=%.5f',it_c,nt,fp,t))
+        
+        set(gca, 'nextplot','replacechildren');
+        pcolor(fine_h,flipud(p_f+frame_f))
+        shading(fine_h,'interp')
+        colormap(fine_h,'gray')
+        caxis(fine_h,[-0.01 0.01])
+        xlim(fine_h,[1 xdim_f])
+        ylim(fine_h,[1 ydim_f])
+        title(fine_h,sprintf('Fine Descritization, N=%d',N))
+        writeVideo(vidObj, getframe(fig));
     end
 end
 fprintf('\n')
+if ifmovie==1
+    close(vidObj);
+end
 %% POST PROCESSING
 return_args=struct('f',0,'r1',0,'r2',0,'r3',0,'E',0);
 % Calculate remaining energy
